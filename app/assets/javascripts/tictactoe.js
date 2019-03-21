@@ -51,7 +51,7 @@ function save() {
   $('td').text((index, piece) => {state.push(piece)});
   if(gameId) {
     $.ajax({
-      type: 'PATCH',
+      type: 'patch',
       url: `/games/${gameId}`,
       data: gameState
     });
