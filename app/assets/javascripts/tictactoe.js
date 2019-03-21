@@ -6,7 +6,7 @@ $(document).ready(function() {
 const WINNING_COMBOS = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]];
 
 var turn = 0;
-var gameId = 0;
+var currentGame = false;
 
 function player() {
   return turn % 2 === 0 ? "X" : "O";
@@ -42,24 +42,24 @@ function checkWinner() {
 function resetBoard() {
   $('td').empty();
   turn = 0;
-  gameId = 0;
+  currentGame = 0;
 }
 
 function save() {
   var state = []
   var gameState = {state: state}
   $('td').text((index, piece) => {state.push(piece)});
-  if(gameId) {
+  if(currentGame) {
     $.ajax({
-      type: 'patch',
-      url: `/games/${gameId}`,
+      type: 'PATCH',
+      url: `/games/${currentGame}`,
       data: gameState
     });
   } else {
     $.post('/games', gameState, function(game) {
-      gameId = game['data']['id'];
-      $('#games').append(`<button id="gameid-${gameId}">${gameId}</button><br>`);
-      $(`#gameid-${gameId}`).on('click', () => reload(gameId));
+      currentGame = game['data']['id'];
+      $('#games').append(`<button id="currentGame-${currentGame}">${currentGame}</button><br>`);
+      $(`#currentGame-${currentGame}`).on('click', () => reload(currentGame));
     });
   }
 }
@@ -95,16 +95,16 @@ function attachListeners() {
   $('#clear').on('click', () => resetBoard());
 }
 
-function reload(gameId) {
-  $.get(`/games/${gameId}`, function(game) {
-    // gameId = game['data']['id'];
+function reload(currentGame) {
+  $.get(`/games/${currentGame}`, function(game) {
+    // currentGame = game['data']['id'];
     var state = game['data']['attributes']['state'];
     $('td').empty();
     $('td').text(function(index) {
       return state[index];
     });
     turn = state.join("").length
-    gameId = game['data']['id'];
+    currentGame = game['data']['id'];
   });
 }
 
@@ -112,8 +112,8 @@ function previous() {
   $('#games').empty();
   $.get('/games', function(games) {
     games['data'].forEach(function(game) {
-      $('#games').append(`<button id="gameid-${game.id}">${game.id}</button><br>`);
-      $(`#gameid-${game.id}`).on('click', function() {
+      $('#games').append(`<button id="currentGame-${game.id}">${game.id}</button><br>`);
+      $(`#currentGame-${game.id}`).on('click', function() {
         reload(game.id)
       });
     });
